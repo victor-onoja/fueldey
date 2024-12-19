@@ -35,7 +35,7 @@ class SplashScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                'FuelDey',
+                'Fuel Finder',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,

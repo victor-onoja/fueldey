@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../business_logic/map/map_screen.dart';
 import '../utils/app_theme_colors.dart';
 import 'auth_bloc.dart';
 
@@ -18,6 +19,10 @@ class AuthScreen extends StatelessWidget {
                 content: Text(state.errorMessage ?? 'Authentication failed'),
                 backgroundColor: AppColors.error,
               ),
+            );
+          } else if (state.status == AuthStatus.authenticated) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const MapScreen()),
             );
           }
         },
@@ -38,7 +43,7 @@ class AuthScreen extends StatelessWidget {
 
                   // Title
                   Text(
-                    'Welcome to FuelDey',
+                    'Welcome to Fuel Finder',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.displayLarge,
                   ),
@@ -50,16 +55,12 @@ class AuthScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
 
-                  // add icons
-
-                  // navigate from this page to map page after sign in
-
                   // Sign In Buttons
                   _buildSignInButton(
                     context,
                     onPressed: () =>
                         context.read<AuthBloc>().add(AuthSignInWithGoogle()),
-                    icon: 'assets/icons/google_logo.svg',
+                    icon: 'assets/icons/google_logo.png',
                     label: 'Continue with Google',
                   ),
                   const SizedBox(height: 16),
@@ -67,7 +68,7 @@ class AuthScreen extends StatelessWidget {
                     context,
                     onPressed: () =>
                         context.read<AuthBloc>().add(AuthSignInWithApple()),
-                    icon: 'assets/icons/apple_logo.svg',
+                    icon: 'assets/icons/apple_logo.jpeg',
                     label: 'Continue with Apple',
                   ),
                   const SizedBox(height: 16),
@@ -75,7 +76,7 @@ class AuthScreen extends StatelessWidget {
                     context,
                     onPressed: () =>
                         context.read<AuthBloc>().add(AuthSignInAsGuest()),
-                    icon: 'assets/icons/guest_icon.svg',
+                    icon: 'assets/icons/guest_icon.png',
                     label: 'Continue as Guest',
                   ),
 

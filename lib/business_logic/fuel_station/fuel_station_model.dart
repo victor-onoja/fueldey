@@ -6,8 +6,7 @@ class FuelStation extends Equatable {
   final String name;
   final String address;
   final GeoPoint location;
-  final Map<String, dynamic> fuelPrices;
-  final bool hasDiesel;
+  final int fuelPrice;
   final bool hasFuel;
   final DateTime lastUpdated;
   final String? updatedBy;
@@ -17,8 +16,7 @@ class FuelStation extends Equatable {
     required this.name,
     required this.address,
     required this.location,
-    required this.fuelPrices,
-    this.hasDiesel = false,
+    required this.fuelPrice,
     this.hasFuel = false,
     required this.lastUpdated,
     this.updatedBy,
@@ -34,8 +32,7 @@ class FuelStation extends Equatable {
       name: data['name'] ?? '',
       address: data['address'] ?? '',
       location: data['location'] ?? const GeoPoint(0, 0),
-      fuelPrices: data['fuelPrices'] ?? {},
-      hasDiesel: data['hasDiesel'] ?? false,
+      fuelPrice: data['fuelPrices'] ?? 0,
       hasFuel: data['hasFuel'] ?? false,
       lastUpdated:
           (data['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -48,8 +45,7 @@ class FuelStation extends Equatable {
       'name': name,
       'address': address,
       'location': location,
-      'fuelPrices': fuelPrices,
-      'hasDiesel': hasDiesel,
+      'fuelPrices': fuelPrice,
       'hasFuel': hasFuel,
       'lastUpdated': lastUpdated,
       'updatedBy': updatedBy,
@@ -59,7 +55,7 @@ class FuelStation extends Equatable {
   FuelStation copyWith({
     String? name,
     String? address,
-    Map<String, dynamic>? fuelPrices,
+    int? fuelPrice,
     bool? hasDiesel,
     bool? hasFuel,
     String? updatedBy,
@@ -69,8 +65,7 @@ class FuelStation extends Equatable {
       name: name ?? this.name,
       address: address ?? this.address,
       location: location,
-      fuelPrices: fuelPrices ?? this.fuelPrices,
-      hasDiesel: hasDiesel ?? this.hasDiesel,
+      fuelPrice: fuelPrice ?? this.fuelPrice,
       hasFuel: hasFuel ?? this.hasFuel,
       lastUpdated: DateTime.now(),
       updatedBy: updatedBy ?? this.updatedBy,
@@ -78,15 +73,6 @@ class FuelStation extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
-        id,
-        name,
-        address,
-        location,
-        fuelPrices,
-        hasDiesel,
-        hasFuel,
-        lastUpdated,
-        updatedBy
-      ];
+  List<Object?> get props =>
+      [id, name, address, location, fuelPrice, hasFuel, lastUpdated, updatedBy];
 }

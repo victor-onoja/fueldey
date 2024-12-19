@@ -1,30 +1,52 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fueldey/auth/auth_bloc.dart';
+import 'package:fueldey/auth/auth_repo.dart';
+import 'package:fueldey/business_logic/fuel_station/fuel_station_repository.dart';
+import 'package:fueldey/business_logic/map/map_screen_bloc.dart';
+import 'package:fueldey/splash_screen.dart';
+import 'package:fueldey/utils/app_theme_colors.dart';
+import 'package:fueldey/utils/location_service.dart';
 
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
+  final firebaseApp = await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MainApp());
+  runApp(FuelFinderApp(firebaseApp: firebaseApp));
 }
 
-// add blocs
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class FuelFinderApp extends StatelessWidget {
+  final FirebaseApp firebaseApp;
+  const FuelFinderApp({super.key, required this.firebaseApp});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
-    );
+    return MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider(create: (context) => AuthRepository),
+          RepositoryProvider(create: (context) => FuelStationRepository()),
+          RepositoryProvider(create: (context) => LocationService())
+        ],
+        child: MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                  create: (context) =>
+                      AuthBloc(authRepository: context.read<AuthRepository>())),
+              BlocProvider(
+                  create: (context) => MapScreenBloc(
+                      locationService: context.read<LocationService>(),
+                      fuelStationRepository:
+                          context.read<FuelStationRepository>()))
+            ],
+            child: MaterialApp(
+              title: 'FuelDey',
+              theme: AppTheme.lightTheme,
+              debugShowCheckedModeBanner: false,
+              home: const SplashScreen(),
+            )));
   }
 }

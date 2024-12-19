@@ -24,6 +24,8 @@ class _MapScreenState extends State<MapScreen> {
     context.read<MapScreenBloc>().add(LoadNearestFuelStations());
   }
 
+// add listener on signout return back to auth screen
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,8 +131,6 @@ class _MapScreenState extends State<MapScreen> {
           children: [
             if (station.hasFuel)
               const Text('Fuel', style: TextStyle(fontSize: 12)),
-            if (station.hasDiesel)
-              const Text('Diesel', style: TextStyle(fontSize: 12)),
           ],
         ),
         onTap: () {
@@ -154,16 +154,9 @@ class _MapScreenState extends State<MapScreen> {
             context.read<MapScreenBloc>().add(CalculateRouteToStation(station));
           },
         ),
-        // Add custom marker icon based on fuel types
-        icon: station.hasFuel && station.hasDiesel
+        icon: station.hasFuel
             ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen)
-            : station.hasFuel
-                ? BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueBlue)
-                : station.hasDiesel
-                    ? BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueOrange)
-                    : BitmapDescriptor.defaultMarker,
+            : BitmapDescriptor.defaultMarker,
       );
     }).toSet();
   }
