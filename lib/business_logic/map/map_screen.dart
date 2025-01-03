@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../auth/auth_screen.dart';
 import '../../utils/app_theme_colors.dart';
 import '../../auth/auth_bloc.dart';
 import '../fuel_station/fuel_station_model.dart';
@@ -16,15 +19,28 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController _mapController;
+  late StreamSubscription _authSubscription;
 
   @override
   void initState() {
     super.initState();
     // Load nearest fuel stations when screen initializes
     context.read<MapScreenBloc>().add(LoadNearestFuelStations());
+
+    _authSubscription = context.read<AuthBloc>().stream.listen((state) {
+      if (state is AuthSignOut && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AuthScreen()),
+        );
+      }
+    });
   }
 
-// add listener on signout return back to auth screen
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
