@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:791585711151:android:29b4a947946cb0f8e192da",
+        "mobilesdk_app_id": "1:791585711151:android:f7ade8330c9606d3e192da",
         "android_client_info": {
-          "package_name": "com.fueldey.app"
+          "package_name": "com.example.fueldey"
         }
       },
       "oauth_client": [],

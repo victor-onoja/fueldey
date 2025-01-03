@@ -27,15 +27,15 @@ class FuelFinderApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
         providers: [
-          RepositoryProvider(create: (context) => AuthRepository),
+          RepositoryProvider(create: (context) => FirebaseAuthRepository()),
           RepositoryProvider(create: (context) => FuelStationRepository()),
           RepositoryProvider(create: (context) => LocationService())
         ],
         child: MultiBlocProvider(
             providers: [
               BlocProvider(
-                  create: (context) =>
-                      AuthBloc(authRepository: context.read<AuthRepository>())),
+                  create: (context) => AuthBloc(
+                      authRepository: context.read<FirebaseAuthRepository>())),
               BlocProvider(
                   create: (context) => MapScreenBloc(
                       locationService: context.read<LocationService>(),

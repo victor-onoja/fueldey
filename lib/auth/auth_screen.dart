@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../business_logic/map/map_screen.dart';
 import '../utils/app_theme_colors.dart';
 import 'auth_bloc.dart';
@@ -103,7 +102,7 @@ class AuthScreen extends StatelessWidget {
   }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: SvgPicture.asset(
+      icon: Image.asset(
         icon,
         width: 24,
         height: 24,

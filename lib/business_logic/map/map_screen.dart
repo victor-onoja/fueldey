@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -19,82 +17,85 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController _mapController;
-  late StreamSubscription _authSubscription;
 
   @override
   void initState() {
     super.initState();
     // Load nearest fuel stations when screen initializes
     context.read<MapScreenBloc>().add(LoadNearestFuelStations());
-
-    _authSubscription = context.read<AuthBloc>().stream.listen((state) {
-      if (state is AuthSignOut && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AuthScreen()),
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _authSubscription.cancel();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fuel Finder'),
-        actions: [
-          // Toggle view mode button
-          IconButton(
-            icon: const Icon(Icons.view_list),
-            onPressed: () {
-              context.read<MapScreenBloc>().add(ToggleViewMode());
-            },
-          ),
-          // Logout button
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              context.read<AuthBloc>().add(AuthSignOut());
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<MapScreenBloc, MapScreenState>(
-        builder: (context, state) {
-          if (state is MapScreenLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.unauthenticated) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const AuthScreen()),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Fuel Finder'),
+          actions: [
+            BlocBuilder<MapScreenBloc, MapScreenState>(
+              builder: (context, state) {
+                if (state is MapScreenLoaded) {
+                  return IconButton(
+                    icon: Icon(state.viewMode == ViewMode.map
+                        ? Icons.view_list
+                        : Icons.map),
+                    onPressed: () {
+                      context.read<MapScreenBloc>().add(ToggleViewMode());
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            // Logout button
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                context.read<AuthBloc>().add(AuthSignOut());
+              },
+            ),
+          ],
+        ),
+        body: BlocBuilder<MapScreenBloc, MapScreenState>(
+          builder: (context, state) {
+            if (state is MapScreenLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is MapScreenError) {
-            return Center(
-              child: Text(
-                'Error: ${state.message}',
-                style: const TextStyle(color: AppColors.error),
-              ),
-            );
-          }
+            if (state is MapScreenError) {
+              print(state.message);
+              return Center(
+                child: Text(
+                  'Error: ${state.message}',
+                  style: const TextStyle(color: AppColors.error),
+                ),
+              );
+            }
 
-          if (state is MapScreenLoaded) {
-            return state.viewMode == ViewMode.map
-                ? _buildMapView(state)
-                : _buildListView(state);
-          }
+            if (state is MapScreenLoaded) {
+              return state.viewMode == ViewMode.map
+                  ? _buildMapView(state)
+                  : _buildListView(state);
+            }
 
-          return const Center(child: Text('No fuel stations found'));
-        },
-      ),
-      // test update current location
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.read<MapScreenBloc>().add(UpdateCurrentLocation());
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.my_location),
+            return const Center(child: Text('No fuel stations found'));
+          },
+        ),
+        // test update current location
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            context.read<MapScreenBloc>().add(UpdateCurrentLocation());
+          },
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.my_location),
+        ),
       ),
     );
   }
