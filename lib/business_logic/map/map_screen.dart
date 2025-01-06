@@ -70,7 +70,6 @@ class _MapScreenState extends State<MapScreen> {
             }
 
             if (state is MapScreenError) {
-              print(state.message);
               return Center(
                 child: Text(
                   'Error: ${state.message}',
@@ -89,13 +88,13 @@ class _MapScreenState extends State<MapScreen> {
           },
         ),
         // test update current location
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            context.read<MapScreenBloc>().add(UpdateCurrentLocation());
-          },
-          backgroundColor: AppColors.primary,
-          child: const Icon(Icons.my_location),
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () {
+        //     context.read<MapScreenBloc>().add(UpdateCurrentLocation());
+        //   },
+        //   backgroundColor: AppColors.primary,
+        //   child: const Icon(Icons.my_location),
+        // ),
       ),
     );
   }
@@ -105,7 +104,7 @@ class _MapScreenState extends State<MapScreen> {
       initialCameraPosition: CameraPosition(
         target: LatLng(
             state.currentPosition.latitude, state.currentPosition.longitude),
-        zoom: 14,
+        zoom: 16,
       ),
       markers: _buildMarkers(state.fuelStations),
       polylines: state.routePolylines.isNotEmpty
@@ -151,6 +150,7 @@ class _MapScreenState extends State<MapScreen> {
           ],
         ),
         onTap: () {
+          print('Tapped station: ${station.name}');
           // Calculate route to selected station
           context.read<MapScreenBloc>().add(CalculateRouteToStation(station));
         },
@@ -167,6 +167,7 @@ class _MapScreenState extends State<MapScreen> {
           title: station.name,
           snippet: station.address,
           onTap: () {
+            print('Tapped station: ${station.name}');
             // Calculate route to tapped station
             context.read<MapScreenBloc>().add(CalculateRouteToStation(station));
           },

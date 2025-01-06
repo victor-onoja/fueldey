@@ -61,6 +61,8 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
         final currentState = state as MapScreenLoaded;
         emit(currentState.copyWith(currentPosition: currentPosition));
       }
+
+      print('Updated current location: $currentPosition');
     } catch (error) {
       emit(MapScreenError(error.toString()));
     }
@@ -86,7 +88,8 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
                   destination: PointLatLng(selectedStation.location.latitude,
                       selectedStation.location.longitude),
                   mode: TravelMode.walking),
-              googleApiKey: 'AIzaSyAGRzqOnwe8m-t0VKcVoY3__DkLFay0sbw');
+              googleApiKey: 'AIzaSyABZAm1m2YV1GnTiYsPosY_cHxiXf9jqHY');
+      // googleApiKey: 'AIzaSyAGRzqOnwe8m-t0VKcVoY3__DkLFay0sbw');
 
       // Convert polyline points to Google Maps Polyline
       if (result.status == 'OK') {
@@ -103,6 +106,7 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
       }
     } catch (error) {
       emit(MapScreenError(error.toString()));
+      print('Failed to calculate route: $error');
     }
   }
 
