@@ -22,11 +22,29 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     // Load nearest fuel stations when screen initializes
-    context.read<MapScreenBloc>().add(LoadNearestFuelStations());
+    final authState = context.read<AuthBloc>().state;
+    if (authState.isModerator && authState.stationName != null) {
+      // Load only the moderator's station
+      context
+          .read<MapScreenBloc>()
+          .add(LoadModeratorStation(stationName: authState.stationName!));
+    } else {
+      // Load all nearby stations for regular users
+      context.read<MapScreenBloc>().add(LoadNearestFuelStations());
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    final isModerator = authState.isModerator;
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state.status == AuthStatus.unauthenticated) {
@@ -37,23 +55,26 @@ class _MapScreenState extends State<MapScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Fuel Finder'),
+          title: Text(isModerator
+              ? 'Station Management - ${authState.stationName}'
+              : 'Fuel Finder'),
           actions: [
-            BlocBuilder<MapScreenBloc, MapScreenState>(
-              builder: (context, state) {
-                if (state is MapScreenLoaded) {
-                  return IconButton(
-                    icon: Icon(state.viewMode == ViewMode.map
-                        ? Icons.view_list
-                        : Icons.map),
-                    onPressed: () {
-                      context.read<MapScreenBloc>().add(ToggleViewMode());
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
+            if (!isModerator)
+              BlocBuilder<MapScreenBloc, MapScreenState>(
+                builder: (context, state) {
+                  if (state is MapScreenLoaded) {
+                    return IconButton(
+                      icon: Icon(state.viewMode == ViewMode.map
+                          ? Icons.view_list
+                          : Icons.map),
+                      onPressed: () {
+                        context.read<MapScreenBloc>().add(ToggleViewMode());
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             // Logout button
             IconButton(
               icon: const Icon(Icons.logout),
@@ -79,9 +100,11 @@ class _MapScreenState extends State<MapScreen> {
             }
 
             if (state is MapScreenLoaded) {
-              return state.viewMode == ViewMode.map
-                  ? _buildMapView(state)
-                  : _buildListView(state);
+              return isModerator
+                  ? _buildModeratorView(state, authState.moderatorName!)
+                  : state.viewMode == ViewMode.map
+                      ? _buildMapView(state)
+                      : _buildListView(state);
             }
 
             return const Center(child: Text('No fuel stations found'));
@@ -177,5 +200,91 @@ class _MapScreenState extends State<MapScreen> {
             : BitmapDescriptor.defaultMarker,
       );
     }).toSet();
+  }
+
+  Widget _buildModeratorView(MapScreenLoaded state, String moderatorName) {
+    if (state.fuelStations.isEmpty) {
+      return const Center(child: Text('Station not found'));
+    }
+
+    final station = state.fuelStations.first;
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Station Details',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Name: ${station.name}'),
+                  Text('Address: ${station.address}'),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Update Station Status',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Has Fuel'),
+                    value: station.hasFuel,
+                    onChanged: (value) {
+                      context.read<MapScreenBloc>().add(
+                            UpdateStationStatus(
+                              stationId: station.id,
+                              updates: {'hasFuel': value},
+                              moderatorName: moderatorName,
+                            ),
+                          );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Fuel Price',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.number,
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        final price = double.tryParse(value);
+                        if (price != null) {
+                          context.read<MapScreenBloc>().add(
+                                UpdateStationStatus(
+                                  stationId: station.id,
+                                  updates: {'fuelPrice': price},
+                                  moderatorName: moderatorName,
+                                ),
+                              );
+                        }
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  // Text(
+                  //   'Last Updated: ${_formatTimestamp(station.lastUpdated)}',
+                  //   style: Theme.of(context).textTheme.bodySmall,
+                  // ),
+                  if (station.updatedBy != null)
+                    Text(
+                      'Updated By: ${station.updatedBy}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Show station on map
+        ],
+      ),
+    );
   }
 }

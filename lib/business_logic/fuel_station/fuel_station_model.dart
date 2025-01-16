@@ -10,6 +10,7 @@ class FuelStation extends Equatable {
   final bool hasFuel;
   final DateTime lastUpdated;
   final String? updatedBy;
+  final List? moderators;
 
   const FuelStation({
     required this.id,
@@ -20,6 +21,7 @@ class FuelStation extends Equatable {
     this.hasFuel = false,
     required this.lastUpdated,
     this.updatedBy,
+    this.moderators,
   });
 
   factory FuelStation.fromFirestore(
@@ -37,6 +39,7 @@ class FuelStation extends Equatable {
       lastUpdated:
           (data['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedBy: data['updatedBy'],
+      moderators: data['moderators'],
     );
   }
 
@@ -49,6 +52,7 @@ class FuelStation extends Equatable {
       'hasFuel': hasFuel,
       'lastUpdated': lastUpdated,
       'updatedBy': updatedBy,
+      'moderators': moderators,
     };
   }
 
@@ -59,6 +63,7 @@ class FuelStation extends Equatable {
     bool? hasDiesel,
     bool? hasFuel,
     String? updatedBy,
+    List? moderators,
   }) {
     return FuelStation(
       id: id,
@@ -69,10 +74,20 @@ class FuelStation extends Equatable {
       hasFuel: hasFuel ?? this.hasFuel,
       lastUpdated: DateTime.now(),
       updatedBy: updatedBy ?? this.updatedBy,
+      moderators: moderators ?? this.moderators,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, name, address, location, fuelPrice, hasFuel, lastUpdated, updatedBy];
+  List<Object?> get props => [
+        id,
+        name,
+        address,
+        location,
+        fuelPrice,
+        hasFuel,
+        lastUpdated,
+        updatedBy,
+        moderators
+      ];
 }

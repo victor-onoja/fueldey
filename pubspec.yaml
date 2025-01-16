@@ -24,6 +24,9 @@ dependencies:
   google_maps_flutter: ^2.10.0
   flutter_polyline_points: ^2.1.0
 
+  # time and date
+  intl: ^0.20.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -23,6 +23,8 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
         _fuelStationRepository = fuelStationRepository,
         super(MapScreenInitial()) {
     on<LoadNearestFuelStations>(_onLoadNearestFuelStations);
+    on<LoadModeratorStation>(_onLoadModeratorStation);
+    on<UpdateStationStatus>(_onUpdateStationStatus);
     on<UpdateCurrentLocation>(_onUpdateCurrentLocation);
     on<CalculateRouteToStation>(_onCalculateRouteToStation);
     on<ToggleViewMode>(_onToggleViewMode);
@@ -48,6 +50,53 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
       ));
     } catch (error) {
       emit(MapScreenError(error.toString()));
+    }
+  }
+
+  Future<void> _onLoadModeratorStation(
+    LoadModeratorStation event,
+    Emitter<MapScreenState> emit,
+  ) async {
+    try {
+      emit(MapScreenLoading());
+
+      final Position currentPosition =
+          await _locationService.getCurrentLocation();
+
+      // Query Firestore for the specific station
+      final station =
+          await _fuelStationRepository.getModeratorStation(event.stationName);
+
+      emit(MapScreenLoaded(
+        fuelStations: station,
+        currentPosition: currentPosition,
+        viewMode: ViewMode.map,
+      ));
+    } catch (e) {
+      emit(MapScreenError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateStationStatus(
+    UpdateStationStatus event,
+    Emitter<MapScreenState> emit,
+  ) async {
+    try {
+      emit(MapScreenLoading());
+      await _fuelStationRepository.updateFuelStationData(
+        event.stationId,
+        event.updates,
+        event.moderatorName,
+      );
+
+      // Reload the station data
+      if (state is MapScreenLoaded) {
+        final currentState = state as MapScreenLoaded;
+        final station = currentState.fuelStations.first;
+        add(LoadModeratorStation(stationName: station.name));
+      }
+    } catch (e) {
+      emit(MapScreenError(e.toString()));
     }
   }
 
@@ -80,16 +129,16 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
       // Calculate route using Google Maps API or similar service
       // This is a placeholder - you'd integrate with a routing service
 
-      final PolylineResult result = await polylinePoints
-          .getRouteBetweenCoordinates(
+      final PolylineResult result =
+          await polylinePoints.getRouteBetweenCoordinates(
               request: PolylineRequest(
                   origin: PointLatLng(
                       currentPosition.latitude, currentPosition.longitude),
                   destination: PointLatLng(selectedStation.location.latitude,
                       selectedStation.location.longitude),
                   mode: TravelMode.walking),
-              googleApiKey: 'AIzaSyABZAm1m2YV1GnTiYsPosY_cHxiXf9jqHY');
-      // googleApiKey: 'AIzaSyAGRzqOnwe8m-t0VKcVoY3__DkLFay0sbw');
+              // googleApiKey: 'AIzaSyABZAm1m2YV1GnTiYsPosY_cHxiXf9jqHY');
+              googleApiKey: 'AIzaSyAGRzqOnwe8m-t0VKcVoY3__DkLFay0sbw');
 
       // Convert polyline points to Google Maps Polyline
       if (result.status == 'OK') {

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fueldey/auth/auth_bloc.dart';
 import 'package:fueldey/auth/auth_repo.dart';
 import 'package:fueldey/business_logic/fuel_station/fuel_station_repository.dart';
+import 'package:fueldey/business_logic/fuel_station/moderator_validator.dart';
 import 'package:fueldey/business_logic/map/map_screen_bloc.dart';
 import 'package:fueldey/splash_screen.dart';
 import 'package:fueldey/utils/app_theme_colors.dart';
@@ -35,7 +36,8 @@ class FuelFinderApp extends StatelessWidget {
             providers: [
               BlocProvider(
                   create: (context) => AuthBloc(
-                      authRepository: context.read<FirebaseAuthRepository>())),
+                      authRepository: context.read<FirebaseAuthRepository>(),
+                      moderatorValidator: ModeratorValidator())),
               BlocProvider(
                   create: (context) => MapScreenBloc(
                       locationService: context.read<LocationService>(),

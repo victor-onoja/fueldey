@@ -8,6 +8,23 @@ class FuelStationRepository {
   FuelStationRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  Future<List<FuelStation>> getModeratorStation(String stationName) async {
+    final snapshot = await _firestore
+        .collection('fuel_stations')
+        .where('name', isEqualTo: stationName)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) {
+      throw Exception('Station not found');
+    }
+
+    return snapshot.docs
+        .map((doc) => FuelStation.fromFirestore(
+            doc as DocumentSnapshot<Map<String, dynamic>>, null))
+        .toList();
+  }
+
   Future<List<FuelStation>> getNearestFuelStations(
     Position currentPosition, {
     int limit = 5,

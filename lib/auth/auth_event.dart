@@ -18,4 +18,17 @@ class AuthUserChanged extends AuthEvent {
 
 class AuthSignInAsGuest extends AuthEvent {}
 
+class AuthSignInAsModerator extends AuthEvent {
+  final String stationName;
+  final String moderatorName;
+
+  const AuthSignInAsModerator({
+    required this.stationName,
+    required this.moderatorName,
+  });
+
+  @override
+  List<Object> get props => [stationName, moderatorName];
+}
+
 class AuthSignOut extends AuthEvent {}
