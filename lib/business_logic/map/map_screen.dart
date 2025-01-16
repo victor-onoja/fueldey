@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 
 import '../../auth/auth_screen.dart';
 import '../../utils/app_theme_colors.dart';
@@ -16,7 +17,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late GoogleMapController _mapController;
+  GoogleMapController? _mapController;
+  final TextEditingController _priceController = TextEditingController();
 
   @override
   void initState() {
@@ -36,7 +38,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
-    _mapController.dispose();
+    _mapController?.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -143,7 +146,9 @@ class _MapScreenState extends State<MapScreen> {
       myLocationEnabled: true,
       compassEnabled: true,
       onMapCreated: (controller) {
-        _mapController = controller;
+        setState(() {
+          _mapController = controller;
+        });
       },
     );
   }
@@ -163,13 +168,25 @@ class _MapScreenState extends State<MapScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         title: Text(station.name),
-        subtitle: Text(station.address),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(station.address),
+            const SizedBox(height: 4),
+            Text('Price: ₦${station.fuelPrice}'),
+            Text(
+              'Last Updated: ${DateFormat('MMM d, y h:mm a').format(station.lastUpdated)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (station.hasFuel)
-              const Text('Fuel', style: TextStyle(fontSize: 12)),
+            station.hasFuel
+                ? const Text('Fuel here', style: TextStyle(fontSize: 12))
+                : const Text('No Fuel', style: TextStyle(fontSize: 12)),
           ],
         ),
         onTap: () {
@@ -208,6 +225,10 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     final station = state.fuelStations.first;
+
+    print('Station: ${station.fuelPrice}');
+
+    _priceController.text = station.fuelPrice.toString();
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -227,11 +248,6 @@ class _MapScreenState extends State<MapScreen> {
                   Text('Name: ${station.name}'),
                   Text('Address: ${station.address}'),
                   const SizedBox(height: 24),
-                  Text(
-                    'Update Station Status',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 16),
                   SwitchListTile(
                     title: const Text('Has Fuel'),
                     value: station.hasFuel,
@@ -246,32 +262,38 @@ class _MapScreenState extends State<MapScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Fuel Price',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        final price = double.tryParse(value);
-                        if (price != null) {
-                          context.read<MapScreenBloc>().add(
-                                UpdateStationStatus(
-                                  stationId: station.id,
-                                  updates: {'fuelPrice': price},
-                                  moderatorName: moderatorName,
-                                ),
-                              );
-                        }
-                      }
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _priceController,
+                          decoration: const InputDecoration(
+                            labelText: 'Fuel Price',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          final price = double.tryParse(_priceController.text);
+                          if (price != null) {
+                            context.read<MapScreenBloc>().add(
+                                  UpdateStationStatus(
+                                    stationId: station.id,
+                                    updates: {'fuelPrice': price},
+                                    moderatorName: moderatorName,
+                                  ),
+                                );
+                          }
+                          FocusScope.of(context).unfocus();
+                        },
+                        child: const Text('Update Price'),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
-                  // Text(
-                  //   'Last Updated: ${_formatTimestamp(station.lastUpdated)}',
-                  //   style: Theme.of(context).textTheme.bodySmall,
-                  // ),
                   if (station.updatedBy != null)
                     Text(
                       'Updated By: ${station.updatedBy}',
@@ -281,8 +303,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          // Show station on map
         ],
       ),
     );

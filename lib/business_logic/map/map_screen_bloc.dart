@@ -82,18 +82,28 @@ class MapScreenBloc extends Bloc<MapScreenEvent, MapScreenState> {
     Emitter<MapScreenState> emit,
   ) async {
     try {
-      emit(MapScreenLoading());
-      await _fuelStationRepository.updateFuelStationData(
-        event.stationId,
-        event.updates,
-        event.moderatorName,
-      );
-
-      // Reload the station data
       if (state is MapScreenLoaded) {
         final currentState = state as MapScreenLoaded;
-        final station = currentState.fuelStations.first;
-        add(LoadModeratorStation(stationName: station.name));
+        await _fuelStationRepository.updateFuelStationData(
+          event.stationId,
+          event.updates,
+          event.moderatorName,
+        );
+
+        final updatedStations = currentState.fuelStations.map((station) {
+          if (station.id == event.stationId) {
+            return station.copyWith(
+              hasFuel: event.updates['hasFuel'] ?? station.hasFuel,
+              fuelPrice: event.updates['fuelPrice'] ?? station.fuelPrice,
+              updatedBy: event.moderatorName,
+            );
+          }
+          return station;
+        }).toList();
+
+        emit(currentState.copyWith(
+          fuelStations: updatedStations,
+        ));
       }
     } catch (e) {
       emit(MapScreenError(e.toString()));

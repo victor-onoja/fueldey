@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fueldey/auth/auth_bloc.dart';
 import 'package:fueldey/auth/auth_repo.dart';
 import 'package:fueldey/business_logic/fuel_station/fuel_station_repository.dart';
-import 'package:fueldey/business_logic/fuel_station/moderator_validator.dart';
 import 'package:fueldey/business_logic/map/map_screen_bloc.dart';
 import 'package:fueldey/splash_screen.dart';
 import 'package:fueldey/utils/app_theme_colors.dart';
 import 'package:fueldey/utils/location_service.dart';
 
 import 'firebase_options.dart';
+import 'business_logic/fuel_station/moderator_validator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

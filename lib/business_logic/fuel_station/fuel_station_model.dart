@@ -6,7 +6,7 @@ class FuelStation extends Equatable {
   final String name;
   final String address;
   final GeoPoint location;
-  final int fuelPrice;
+  final double fuelPrice;
   final bool hasFuel;
   final DateTime lastUpdated;
   final String? updatedBy;
@@ -34,7 +34,7 @@ class FuelStation extends Equatable {
       name: data['name'] ?? '',
       address: data['address'] ?? '',
       location: data['location'] ?? const GeoPoint(0, 0),
-      fuelPrice: data['fuelPrices'] ?? 0,
+      fuelPrice: (data['fuelPrice'] ?? 0).toDouble(),
       hasFuel: data['hasFuel'] ?? false,
       lastUpdated:
           (data['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -48,7 +48,7 @@ class FuelStation extends Equatable {
       'name': name,
       'address': address,
       'location': location,
-      'fuelPrices': fuelPrice,
+      'fuelPrice': fuelPrice,
       'hasFuel': hasFuel,
       'lastUpdated': lastUpdated,
       'updatedBy': updatedBy,
@@ -59,7 +59,7 @@ class FuelStation extends Equatable {
   FuelStation copyWith({
     String? name,
     String? address,
-    int? fuelPrice,
+    double? fuelPrice,
     bool? hasDiesel,
     bool? hasFuel,
     String? updatedBy,
