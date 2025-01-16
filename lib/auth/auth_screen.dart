@@ -59,7 +59,17 @@ class AuthScreen extends StatelessWidget {
                     onPressed: () =>
                         context.read<AuthBloc>().add(AuthSignInAsGuest()),
                     icon: 'assets/icons/guest_icon.png',
-                    label: 'Continue as Guest',
+                    label: 'Continue as Moderator',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  _buildSignInButton(
+                    context,
+                    onPressed: () =>
+                        context.read<AuthBloc>().add(AuthSignInAsGuest()),
+                    icon: 'assets/icons/guest_icon.png',
+                    label: 'Continue as User',
                   ),
 
                   // Loading indicator
