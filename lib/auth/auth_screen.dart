@@ -35,7 +35,7 @@ class AuthScreen extends StatelessWidget {
                 children: [
                   // App Logo
                   Image.asset(
-                    'assets/images/logo.webp',
+                    'assets/images/logo.png',
                     height: 150,
                   ),
                   const SizedBox(height: 32),
@@ -54,23 +54,6 @@ class AuthScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
 
-                  // Sign In Buttons
-                  _buildSignInButton(
-                    context,
-                    onPressed: () =>
-                        context.read<AuthBloc>().add(AuthSignInWithGoogle()),
-                    icon: 'assets/icons/google_logo.png',
-                    label: 'Continue with Google',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSignInButton(
-                    context,
-                    onPressed: () =>
-                        context.read<AuthBloc>().add(AuthSignInWithApple()),
-                    icon: 'assets/icons/apple_logo.jpeg',
-                    label: 'Continue with Apple',
-                  ),
-                  const SizedBox(height: 16),
                   _buildSignInButton(
                     context,
                     onPressed: () =>

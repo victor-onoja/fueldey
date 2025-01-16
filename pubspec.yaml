@@ -11,11 +11,9 @@ dependencies:
     sdk: flutter
 
   # firebase dependencies
-  firebase_core: ^3.8.1
-  firebase_auth: ^5.3.4
-  cloud_firestore: ^5.5.1
-  google_sign_in: ^6.2.2
-  sign_in_with_apple: ^6.1.4
+  firebase_core: ^3.10.0
+  firebase_auth: ^5.4.0
+  cloud_firestore: ^5.6.1
 
   # state management
   flutter_bloc: ^8.1.6

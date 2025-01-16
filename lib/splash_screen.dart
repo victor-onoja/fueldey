@@ -29,7 +29,7 @@ class SplashScreen extends StatelessWidget {
             children: [
               // App logo or icon
               Image.asset(
-                'assets/images/logo.webp',
+                'assets/images/logo.png',
                 width: 200,
                 height: 200,
               ),

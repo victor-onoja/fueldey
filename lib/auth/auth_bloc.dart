@@ -13,8 +13,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       : _authRepository = authRepository,
         super(const AuthState.unknown()) {
     on<AuthUserChanged>(_onUserChanged);
-    on<AuthSignInWithGoogle>(_onSignInWithGoogle);
-    on<AuthSignInWithApple>(_onSignInWithApple);
     on<AuthSignInAsGuest>(_onSignInAsGuest);
     on<AuthSignOut>(_onSignOut);
 
@@ -27,30 +25,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(event.user != null
         ? AuthState.authenticated(event.user!)
         : const AuthState.unauthenticated());
-  }
-
-  Future<void> _onSignInWithGoogle(
-      AuthSignInWithGoogle event, Emitter<AuthState> emit) async {
-    try {
-      final user = await _authRepository.signInWithGoogle();
-      emit(user != null
-          ? AuthState.authenticated(user)
-          : const AuthState.unauthenticated());
-    } catch (error) {
-      emit(AuthState.error(error.toString()));
-    }
-  }
-
-  Future<void> _onSignInWithApple(
-      AuthSignInWithApple event, Emitter<AuthState> emit) async {
-    try {
-      final user = await _authRepository.signInWithApple();
-      emit(user != null
-          ? AuthState.authenticated(user)
-          : const AuthState.unauthenticated());
-    } catch (error) {
-      emit(AuthState.error(error.toString()));
-    }
   }
 
   Future<void> _onSignInAsGuest(

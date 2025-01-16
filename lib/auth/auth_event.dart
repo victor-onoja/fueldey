@@ -16,10 +16,6 @@ class AuthUserChanged extends AuthEvent {
   List<Object?> get props => [user];
 }
 
-class AuthSignInWithGoogle extends AuthEvent {}
-
-class AuthSignInWithApple extends AuthEvent {}
-
 class AuthSignInAsGuest extends AuthEvent {}
 
 class AuthSignOut extends AuthEvent {}

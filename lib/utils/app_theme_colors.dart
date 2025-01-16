@@ -20,15 +20,15 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       primarySwatch: MaterialColor(AppColors.primary.value, {
-        50: AppColors.primaryLight.withOpacity(0.1),
-        100: AppColors.primaryLight.withOpacity(0.2),
-        200: AppColors.primaryLight.withOpacity(0.3),
-        300: AppColors.primaryLight.withOpacity(0.4),
-        400: AppColors.primaryLight.withOpacity(0.5),
+        50: AppColors.primaryLight.withValues(alpha: 0.1),
+        100: AppColors.primaryLight.withValues(alpha: 0.2),
+        200: AppColors.primaryLight.withValues(alpha: 0.3),
+        300: AppColors.primaryLight.withValues(alpha: 0.4),
+        400: AppColors.primaryLight.withValues(alpha: 0.5),
         500: AppColors.primary,
-        600: AppColors.primaryDark.withOpacity(0.7),
-        700: AppColors.primaryDark.withOpacity(0.8),
-        800: AppColors.primaryDark.withOpacity(0.9),
+        600: AppColors.primaryDark.withValues(alpha: 0.7),
+        700: AppColors.primaryDark.withValues(alpha: 0.8),
+        800: AppColors.primaryDark.withValues(alpha: 0.9),
         900: AppColors.primaryDark,
       }),
       scaffoldBackgroundColor: AppColors.background,

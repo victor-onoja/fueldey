@@ -43,7 +43,7 @@ class FuelFinderApp extends StatelessWidget {
                           context.read<FuelStationRepository>()))
             ],
             child: MaterialApp(
-              title: 'FuelDey',
+              title: 'Fuel Finder',
               theme: AppTheme.lightTheme,
               debugShowCheckedModeBanner: false,
               home: const SplashScreen(),
