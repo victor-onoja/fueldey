@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fueldey/auth/screens/login_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-
-import '../../auth/auth_screen.dart';
+import '../../auth/logic/auth_event.dart';
+import '../../auth/logic/auth_state.dart';
+import '../../auth/logic/user_model.dart';
 import '../../utils/app_theme_colors.dart';
-import '../../auth/auth_bloc.dart';
+import '../../auth/logic/auth_bloc.dart';
 import '../fuel_station/fuel_station_model.dart';
 import 'map_screen_bloc.dart';
 
@@ -17,6 +20,18 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  void _handleProfileNavigation() {
+    context.push('/profile');
+  }
+
+  void _handleAdminNavigation() {
+    context.push('/admin');
+  }
+
+  void _handleStationManagement() {
+    context.push('/station-management');
+  }
+
   GoogleMapController? _mapController;
   final TextEditingController _priceController = TextEditingController();
 
@@ -25,11 +40,11 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     // Load nearest fuel stations when screen initializes
     final authState = context.read<AuthBloc>().state;
-    if (authState.isModerator && authState.stationName != null) {
+    if (authState.user?.role == UserRole.moderator) {
       // Load only the moderator's station
-      context
-          .read<MapScreenBloc>()
-          .add(LoadModeratorStation(stationName: authState.stationName!));
+      context.read<MapScreenBloc>().add(
+            LoadModeratorStation(stationName: authState.user!.stationName!),
+          );
     } else {
       // Load all nearby stations for regular users
       context.read<MapScreenBloc>().add(LoadNearestFuelStations());
@@ -46,45 +61,27 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = context.read<AuthBloc>().state;
-    final isModerator = authState.isModerator;
+    final userRole = authState.user?.role ?? UserRole.regular;
+    final isAdmin = userRole == UserRole.admin;
+    final isModerator = userRole == UserRole.moderator;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state.status == AuthStatus.unauthenticated) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AuthScreen()),
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
           );
         }
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(isModerator
-              ? 'Station Management - ${authState.stationName}'
-              : 'Fuel Finder'),
+              ? 'Station Management - ${authState.user?.stationName}'
+              : isAdmin
+                  ? 'Admin Dashboard'
+                  : 'Fuel Finder'),
           actions: [
-            if (!isModerator)
-              BlocBuilder<MapScreenBloc, MapScreenState>(
-                builder: (context, state) {
-                  if (state is MapScreenLoaded) {
-                    return IconButton(
-                      icon: Icon(state.viewMode == ViewMode.map
-                          ? Icons.view_list
-                          : Icons.map),
-                      onPressed: () {
-                        context.read<MapScreenBloc>().add(ToggleViewMode());
-                      },
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            // Logout button
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                context.read<AuthBloc>().add(AuthSignOut());
-              },
-            ),
+            _buildActionButtons(isAdmin, isModerator),
           ],
         ),
         body: BlocBuilder<MapScreenBloc, MapScreenState>(
@@ -104,23 +101,27 @@ class _MapScreenState extends State<MapScreen> {
 
             if (state is MapScreenLoaded) {
               return isModerator
-                  ? _buildModeratorView(state, authState.moderatorName!)
-                  : state.viewMode == ViewMode.map
-                      ? _buildMapView(state)
-                      : _buildListView(state);
+                  ? _buildModeratorView(state)
+                  : isAdmin
+                      ? _buildAdminView(state)
+                      : state.viewMode == ViewMode.map
+                          ? _buildMapView(state)
+                          : _buildListView(state);
             }
 
             return const Center(child: Text('No fuel stations found'));
           },
         ),
-        // test update current location
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () {
-        //     context.read<MapScreenBloc>().add(UpdateCurrentLocation());
-        //   },
-        //   backgroundColor: AppColors.primary,
-        //   child: const Icon(Icons.my_location),
-        // ),
+        floatingActionButton: !isModerator && !isAdmin
+            ? null
+            // FloatingActionButton(
+            //     onPressed: () {
+            //       context.read<MapScreenBloc>().add(UpdateCurrentLocation());
+            //     },
+            //     backgroundColor: AppColors.primary,
+            //     child: const Icon(Icons.my_location),
+            //   )
+            : null,
       ),
     );
   }
@@ -198,6 +199,47 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  Widget _buildAdminView(MapScreenLoaded state) {
+    // Add admin dashboard UI here
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Admin Dashboard',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  // Add admin functionality here
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to user management screen
+                    },
+                    child: const Text('Manage Users'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to station management screen
+                    },
+                    child: const Text('Manage Stations'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Set<Marker> _buildMarkers(List<FuelStation> stations) {
     return stations.map((station) {
       return Marker(
@@ -219,7 +261,11 @@ class _MapScreenState extends State<MapScreen> {
     }).toSet();
   }
 
-  Widget _buildModeratorView(MapScreenLoaded state, String moderatorName) {
+  Widget _buildModeratorView(MapScreenLoaded state) {
+    // Remove moderatorName parameter as it should come from AuthState
+    final authState = context.read<AuthBloc>().state;
+    final moderatorName = authState.user?.name ?? 'Unknown';
+
     if (state.fuelStations.isEmpty) {
       return const Center(child: Text('Station not found'));
     }
@@ -305,6 +351,64 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButtons(bool isAdmin, bool isModerator) {
+    return Row(
+      children: [
+        if (!isModerator && !isAdmin)
+          BlocBuilder<MapScreenBloc, MapScreenState>(
+            builder: (context, state) {
+              if (state is MapScreenLoaded) {
+                return IconButton(
+                  icon: Icon(state.viewMode == ViewMode.map
+                      ? Icons.view_list
+                      : Icons.map),
+                  onPressed: () =>
+                      context.read<MapScreenBloc>().add(ToggleViewMode()),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        if (isAdmin)
+          IconButton(
+            icon: const Icon(Icons.admin_panel_settings),
+            onPressed: _handleAdminNavigation,
+          ),
+        if (isModerator)
+          IconButton(
+            icon: const Icon(Icons.edit_location),
+            onPressed: _handleStationManagement,
+          ),
+        _buildUserMenu(),
+      ],
+    );
+  }
+
+  Widget _buildUserMenu() {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        switch (value) {
+          case 'logout':
+            context.read<AuthBloc>().add(AuthSignOut());
+            break;
+          case 'profile':
+            _handleProfileNavigation();
+            break;
+        }
+      },
+      itemBuilder: (BuildContext context) => [
+        const PopupMenuItem(
+          value: 'profile',
+          child: Text('Profile'),
+        ),
+        const PopupMenuItem(
+          value: 'logout',
+          child: Text('Logout'),
+        ),
+      ],
     );
   }
 }

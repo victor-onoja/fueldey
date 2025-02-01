@@ -1,54 +1,88 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fueldey/auth/auth_bloc.dart';
-import 'package:fueldey/auth/auth_repo.dart';
-import 'package:fueldey/business_logic/fuel_station/fuel_station_repository.dart';
-import 'package:fueldey/business_logic/map/map_screen_bloc.dart';
-import 'package:fueldey/splash_screen.dart';
-import 'package:fueldey/utils/app_theme_colors.dart';
-import 'package:fueldey/utils/location_service.dart';
 
+import 'auth/logic/auth_bloc.dart';
+import 'auth/logic/auth_repo.dart';
+import 'business_logic/fuel_station/fuel_station_repository.dart';
+import 'business_logic/map/map_screen_bloc.dart';
 import 'firebase_options.dart';
-import 'business_logic/fuel_station/moderator_validator.dart';
+import 'splash_screen.dart';
+import 'utils/app_theme_colors.dart';
+import 'utils/location_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final firebaseApp = await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final authRepository = AuthRepository(
+    auth: FirebaseAuth.instance,
+    firestore: FirebaseFirestore.instance,
   );
-  runApp(FuelFinderApp(firebaseApp: firebaseApp));
+
+  final fuelStationRepository = FuelStationRepository(
+    firestore: FirebaseFirestore.instance,
+  );
+
+  final locationService = LocationService();
+
+  runApp(FuelFinderApp(
+    authRepository: authRepository,
+    fuelStationRepository: fuelStationRepository,
+    locationService: locationService,
+  ));
 }
 
 class FuelFinderApp extends StatelessWidget {
-  final FirebaseApp firebaseApp;
-  const FuelFinderApp({super.key, required this.firebaseApp});
+  final AuthRepository authRepository;
+  final FuelStationRepository fuelStationRepository;
+  final LocationService locationService;
+
+  const FuelFinderApp({
+    super.key,
+    required this.authRepository,
+    required this.fuelStationRepository,
+    required this.locationService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider.value(value: authRepository),
+        RepositoryProvider.value(value: fuelStationRepository),
+        RepositoryProvider.value(value: locationService),
+      ],
+      child: MultiBlocProvider(
         providers: [
-          RepositoryProvider(create: (context) => FirebaseAuthRepository()),
-          RepositoryProvider(create: (context) => FuelStationRepository()),
-          RepositoryProvider(create: (context) => LocationService())
+          BlocProvider(
+            create: (context) => AuthBloc(
+              authRepository: authRepository,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => MapScreenBloc(
+              locationService: locationService,
+              fuelStationRepository: fuelStationRepository,
+            ),
+          ),
         ],
-        child: MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                  create: (context) => AuthBloc(
-                      authRepository: context.read<FirebaseAuthRepository>(),
-                      moderatorValidator: ModeratorValidator())),
-              BlocProvider(
-                  create: (context) => MapScreenBloc(
-                      locationService: context.read<LocationService>(),
-                      fuelStationRepository:
-                          context.read<FuelStationRepository>()))
-            ],
-            child: MaterialApp(
-              title: 'Fuel Finder',
-              theme: AppTheme.lightTheme,
-              debugShowCheckedModeBanner: false,
-              home: const SplashScreen(),
-            )));
+        child: MaterialApp(
+          title: 'Fuel Finder',
+          theme: ThemeData(
+            primaryColor: AppColors.primary,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColors.primary,
+              primary: AppColors.primary,
+            ),
+            useMaterial3: true,
+          ),
+          debugShowCheckedModeBanner: false,
+          home: const SplashScreen(),
+        ),
+      ),
+    );
   }
 }

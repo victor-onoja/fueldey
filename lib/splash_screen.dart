@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'auth/auth_bloc.dart';
-import 'auth/auth_screen.dart';
+import 'auth/logic/auth_bloc.dart';
+import 'auth/logic/auth_state.dart';
+import 'auth/screens/login_screen.dart';
 import 'business_logic/map/map_screen.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -18,7 +19,7 @@ class SplashScreen extends StatelessWidget {
           );
         } else if (state.status == AuthStatus.unauthenticated) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AuthScreen()),
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
           );
         }
       },
@@ -27,7 +28,6 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo or icon
               Image.asset(
                 'assets/images/logo.png',
                 width: 200,

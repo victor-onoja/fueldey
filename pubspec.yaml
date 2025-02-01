@@ -26,6 +26,7 @@ dependencies:
 
   # time and date
   intl: ^0.20.1
+  go_router: ^14.7.2
 
 dev_dependencies:
   flutter_test:
